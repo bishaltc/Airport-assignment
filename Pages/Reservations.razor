@@ -1,0 +1,246 @@
+﻿@page "/reservations"
+
+@using Assignment2.Components.Pages.Data;
+@using System.Text;
+
+@* Group 14
+Date of Submission: 10 March 2024*@
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+    .column {
+        float: left;
+        width: 50%;
+        padding: 10px;
+        height: 350px;
+    }
+
+
+    .row:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    .ColumnB {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    .myself .property {
+        width: 25%;
+        display: inline-block;
+        box-sizing: border-box;
+        text-align: right;
+    }
+
+    .myself .value {
+        text-align: left;
+        padding-left: 10px;
+        width: 70%;
+        display: inline-block;
+        box-sizing: border-box;
+    }
+
+
+    .container {
+        position: relative;
+    }
+
+    .center {
+        position: absolute;
+        left: 50%;
+    }
+
+    .columnC {
+        float: left;
+        width: 100%;
+        padding: 10px;
+        height: 150px;
+        box-sizing: border-box;
+    }
+
+    .columnB {
+        clear: both;
+        width: 100%;
+        padding: 10px;
+        height: 150px;
+        margin-top: 450px;
+    }
+
+    .columnD {
+        clear: both;
+        width: 100%;
+        padding-top: 130px;
+        height: 350px;
+       
+    }
+
+    .myself .valueC {
+        text-align: left;
+        padding-left: 10px;
+        width: 70%;
+        display: inline-block;
+        box-sizing: border-box;
+    }
+
+    .myself .propertyC {
+        width: 25%;
+        display: inline-block;
+        box-sizing: border-box;
+        text-align: right;
+    }
+
+    .form-control {
+        width: 100%;
+    }
+
+    .button1 {
+        width: 300px;
+    }
+</style>
+
+<div class="row">    
+    <div class="columnC myself">
+        <div class="row">
+            <div class="center">
+                <h3>Check Reservations</h3>
+            </div>
+        </div>
+        <br />
+        <div>
+            <label>Reservation Code: </label><input class="form-control" type="text" id="code" name="code" @bind="inputResCode">
+            <label>Airline: </label><input class="form-control" type="text" id="airline" name="airline" @bind="inputAirline">
+            <label>Traveller Name: </label><input class="form-control" type="text" id="name" name="name" @bind="inputName">
+
+            <br />
+
+            <div class="row">
+                <div class="center">
+                    <button class="btn btn-primary" @onclick="SearchReservations">Find Reservations</button>
+                </div>
+            </div>
+        </div>
+        <br />
+        <br />
+        <br />
+        <div class="row">
+            <div class="center">
+                <h3>Your Reservations</h3>
+            </div>
+        </div>
+        <br />
+        <br />
+        <select class="form-control" onfocus="this.selectedIndex = -1;" @bind="currentReservation">
+            <option value=" " selected>Please select a reservation</option>
+            @if (resNew.Count() == 0)
+            {
+                <option>Loading...</option>
+            }
+            else
+            {
+                @foreach (var res in resNew)
+                {
+                    <option value="@res.Code"> @res.Code,@res.FlightCode,@res.Airline,@res.Cost,@res.Name,@res.Citizenship,@res.Active </option>
+                }
+            }
+        </select>
+
+        <br />
+        <div>           
+            <br />
+            <div class="row">
+                <div class="center">
+                    <button class="btn btn-primary" @onclick="CancelReservations">Cancel Reservations</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    string inputResCode = "";
+    string inputAirline = "";
+    string inputName = "";
+    string currentReservation;
+
+    ReservationManager rm = new ReservationManager();
+    List<Reservation> reservations;
+    List<Reservation> resNew = new List<Reservation>();
+
+
+    private void SearchReservations()
+    {
+        reservations = ReservationManager.GetReservations();
+        resNew.Clear();
+        Reservation NewReservation;
+
+        if ((inputResCode != "") || (inputAirline != "") || (inputName != ""))
+        {
+            foreach (var res in reservations)
+            {
+                if (((inputResCode != "") && (inputResCode.ToUpper() == res.Code.ToUpper())) &&
+                    ((inputAirline != "") && (inputAirline.ToUpper() == res.Airline.ToUpper())) &&
+                    ((inputName != "") && (inputName.ToUpper() == res.Name.ToUpper())))
+                {
+                    NewReservation = new Reservation(res.Code, res.FlightCode, res.Airline, res.Cost, res.Name, res.Citizenship, res.Active);
+                    resNew.Add(NewReservation);
+                }
+
+                
+                else if ((inputResCode != "") && (inputResCode.ToUpper() == res.Code.ToUpper()))
+                {
+                    NewReservation = new Reservation(res.Code, res.FlightCode, res.Airline, res.Cost, res.Name, res.Citizenship, res.Active);
+                    resNew.Add(NewReservation);
+                }
+
+                else if ((inputAirline != "") && (inputAirline.ToUpper() == res.Airline.ToUpper()))
+                {
+                    NewReservation = new Reservation(res.Code, res.FlightCode, res.Airline, res.Cost, res.Name, res.Citizenship, res.Active);
+                    resNew.Add(NewReservation);
+                }
+
+                else if ((inputName != "") && (inputName.ToUpper() == res.Name.ToUpper()))
+                {
+                    NewReservation = new Reservation(res.Code, res.FlightCode, res.Airline, res.Cost, res.Name, res.Citizenship, res.Active);
+                    resNew.Add(NewReservation);
+                }
+
+                
+            }
+        }
+        else
+        {
+            resNew = reservations;
+        }
+    }
+
+    private void CancelReservations()
+    {
+        foreach (var res in reservations)
+        {
+            if (currentReservation == res.Code)
+            {
+                rm.UpdateReservation(res);
+                break;
+            }                
+        }
+
+        reservations = ReservationManager.GetReservations();
+        Reservation canceledReservation = new Reservation();
+        resNew.Clear();
+        foreach (var res in reservations)
+        {
+            if (currentReservation.ToUpper() == res.Code.ToUpper())             
+            {
+                canceledReservation = new Reservation(res.Code, res.FlightCode, res.Airline, res.Cost, res.Name, res.Citizenship, res.Active);
+                resNew.Add(canceledReservation);
+                break;
+            }          
+        }
+    }
+}

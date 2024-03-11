@@ -1,0 +1,331 @@
+﻿@page "/flights"
+
+@using Assignment2.Components.Pages.Data;
+@using System.Text;
+
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+
+    .column {
+        float: left;
+        width: 50%;
+        padding: 10px;
+        height: 350px;
+    }
+
+    .row:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    .ColumnB {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    .myself .property {
+        width: 25%;
+        display: inline-block;
+        box-sizing: border-box;
+        text-align: right;
+    }
+
+    .myself .value {
+        text-align: left;
+        padding-left: 10px;
+        width: 70%;
+        display: inline-block;
+        box-sizing: border-box;
+    }
+
+
+    .container {
+        position: relative;
+    }
+
+    .center {
+        position: absolute;
+        left: 50%;
+    }
+
+    .columnC {
+        float: left;
+        width: 100%;
+        padding: 10px;
+        height: 150px;
+        box-sizing: border-box;
+    }
+
+    .columnB {
+        clear: both;
+        width: 100%;
+        padding: 10px;
+        height: 150px;
+        margin-top: 450px;
+    }
+
+    .columnD {
+        clear: both;
+        width: 100%;
+        padding-top: 130px;
+        height: 350px;
+       
+    }
+
+    .myself .valueC {
+        text-align: left;
+        padding-left: 10px;
+        width: 70%;
+        display: inline-block;
+        box-sizing: border-box;
+    }
+
+    .myself .propertyC {
+        width: 25%;
+        display: inline-block;
+        box-sizing: border-box;
+        text-align: right;
+    }
+
+    .form-control {
+        width: 100%;
+    }
+
+    .button1 {
+        width: 300px;
+    }
+</style>
+
+@if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <div style="color: red;">
+        @errorMessage
+    </div>
+}
+
+<div class="row">
+    <div class="columnC myself">
+        <div class="row">
+            <div class="center">
+                <h3>Find Flight</h3>
+            </div>
+        </div>
+
+        <br /><br />
+
+        <div class="row">
+            <div class="col-sm-3">
+                <label for="explicit-label-name">Origin: </label>
+                <select class="form-control" @bind="fromValue">
+                    <option value="@FlightManager.WEEKDAY_ANY">@FlightManager.WEEKDAY_ANY</option>
+                    @if (airports == null)
+                    {
+                        <option>Loading...</option>
+                    }
+                    else
+                    {
+                        @foreach (var a in airports)
+                        {
+                            <option value=@a>@a</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-sm-3">
+                <label for="explicit-label-name">Destination: </label>
+                <select class="form-control" @bind="toValue">
+                    <option value="Any">@FlightManager.WEEKDAY_ANY</option>
+                    @if (airports == null)
+                    {
+                        <option>Loading...</option>
+                    }
+                    else
+                    {
+                        @foreach (var a in airports)
+                        {
+                            <option value=@a>@a</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-sm-3">
+                <label for="explicit-label-name">Day: </label>
+                <select class="form-control" @bind="dayValue">
+                    <option value="@FlightManager.WEEKDAY_ANY">@FlightManager.WEEKDAY_ANY</option>
+                    <option value="@FlightManager.WEEKDAY_SUNDAY">@FlightManager.WEEKDAY_SUNDAY</option>
+                    <option value="@FlightManager.WEEKDAY_MONDAY">@FlightManager.WEEKDAY_MONDAY</option>
+                    <option value="@FlightManager.WEEKDAY_TUESDAY">@FlightManager.WEEKDAY_TUESDAY</option>
+                    <option value="@FlightManager.WEEKDAY_WEDNESDAY">@FlightManager.WEEKDAY_WEDNESDAY</option>
+                    <option value="@FlightManager.WEEKDAY_THURSDAY">@FlightManager.WEEKDAY_THURSDAY</option>
+                    <option value="@FlightManager.WEEKDAY_FRIDAY">@FlightManager.WEEKDAY_FRIDAY</option>
+                    <option value="@FlightManager.WEEKDAY_SATURDAY">@FlightManager.WEEKDAY_SATURDAY</option>
+                </select>
+            </div>
+            <div class="col-sm-3">
+                <label for="explicit-label-name"> </label>
+                <button class="btn btn-primary form-control" @onclick="@FindFlights">Find Flights</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="columnC myself">
+        <div class="row ">
+            <div class="center">
+                <h3>Flights</h3>
+            </div>
+        </div>
+
+        <br /><br />
+        <select class="form-control" @onchange="@fillForm">
+            @if (flights == null)
+            {
+                <option>Loading...</option>
+            }
+            else
+            {
+                <option>Select a flight from this list</option>
+                @foreach (var f in flights)
+                {
+                    <option value=@f.Code>@f.Code , @f.Airline, @f.Airline, @f.From, @f.To, @f.Weekday, @f.Time, @f.CostPerSeat</option>
+                }
+            }
+        </select>
+    </div>
+</div>
+
+<div class="row">
+    <div class="columnC myself">
+        <div class="row">
+            <div class="center">
+                <h3>Reserve</h3>
+            </div>
+        </div>
+
+        <br />
+        <div>
+            <label>Flight code:</label> <input class="form-control" type="text" placeholder="Flight" value="@newFlightCode">
+            <label>Airline:</label><input class="form-control" type="text" placeholder="Airline" value="@newairline">
+            <label>Day:</label> <input class="form-control" type="text" placeholder="Day" value="@newweekday">
+            <label>Time:</label> <input class="form-control" type="text" placeholder="Time" value="@newtime">
+            <label>Cost:</label> <input class="form-control" type="text" placeholder="Cost" value="@newcostPerSeat">
+        </div>
+        <div>
+            <label>Name:</label> <input class="form-control" type="text" placeholder="Name" @bind="newName">
+            <label>Citizenship:</label><input class="form-control" type="text" placeholder="Citizenship" @bind="newCitizenship">
+        </div>
+        <br />
+
+        <div class="row">
+            <div class="center">
+                <button class="btn btn-primary button1" @onclick="CallMakeReservation">Reserve</button>
+                <br /> <br />
+                <p id="c" role="status" value="@newReservationCode">Reservation Code: @newReservationCode</p> 
+                <br />
+                <br />
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+
+    string flightCode;
+    static string newFlightCode;
+    string newairline;
+    string newfrom;
+    string newto;
+    string newweekday;
+    string newtime;
+    double newcostPerSeat;
+    string newName;
+    string newCitizenship;
+    string reservationCode;
+    string errorMessage = "";
+    string newReservationCode = "";
+
+    FlightManager fm = new FlightManager();
+    List<Flight> flights = new List<Flight>();
+    List<string> airports = FlightManager.airports;
+
+    Flight flight;
+    string a;
+    string fromValue;
+    string toValue;
+    string dayValue;
+    private void FindFlights()
+    {
+        ClearErrorMessage();
+        newFlightCode = "";
+        newairline = "";
+        newfrom = "";
+        newto = "";
+        newweekday = "";
+        newtime = "";
+        newcostPerSeat = 0;
+        newName = "";
+        newCitizenship = "";
+        if (fromValue == null)
+        {
+            fromValue = FlightManager.WEEKDAY_ANY;
+        }
+        if (toValue == null)
+        {
+            toValue = FlightManager.WEEKDAY_ANY;
+        }
+        if (dayValue == null)
+        {
+            dayValue = FlightManager.WEEKDAY_ANY;
+        }
+        flights = FlightManager.findFlights(fromValue, toValue, dayValue);
+    }
+
+    private void fillForm(ChangeEventArgs e)
+    {
+        ClearErrorMessage();
+        newFlightCode = e.Value.ToString();
+        flight = FlightManager.findFlightByCode(newFlightCode);
+        newairline = flight.Airline;
+        newfrom = flight.From;
+        newto = flight.To;
+        newweekday = flight.Weekday;
+        newtime = flight.Time;
+        newcostPerSeat = flight.CostPerSeat;       
+    }
+
+    private void CallMakeReservation()
+    {
+        ClearErrorMessage();
+        ReservationManager rm = new ReservationManager();        
+        try
+        {
+            if (newFlightCode != null)
+            {
+                newReservationCode = rm.GenerateResCode();
+                var reservation = new Reservation(newReservationCode, newFlightCode, newairline, newcostPerSeat, newName, newCitizenship, "Active");
+                rm.AddReservation(reservation);
+            }
+            else
+            {
+                errorMessage = "An error has occurred. Please try again.";
+            }
+        }
+        catch(Exception e)
+        {
+            errorMessage = e.Message;
+        }
+    }
+
+
+    private void ClearErrorMessage()
+    {
+        errorMessage = "";
+    }
+}
